@@ -11,3 +11,5 @@ wildermesser Platform repository
  - создания ReplicaSet для `frontend` и `paymentservice`
  - создания Deployment для `paymentservice` с различными стратегиями деплоя
  - создания Daemonset для `node-exporter` запускающего поды в том числе на `control-plane` нодах
+## RBAC
+В директории `kubernetes-security` находятся манифесты для различных политик управления доступом к k8s api
