@@ -22,4 +22,6 @@ wildermesser Platform repository
 адресе балансировщика Metallb
 В директории `kubernetes-networks/dashboard` манифесты для публикации kubernetes-dashboard через Ingress
 В директории `kubernetes-networks/canary` манифесты для Canary deployment с помощью Ingress
- 
+## Volumes
+В директории `kubernetes-volumes` находятся манифесты для деплоя `minio` как `statefulset`, причём данные для авторизации
+сохранены в ресурсе `secret` 
