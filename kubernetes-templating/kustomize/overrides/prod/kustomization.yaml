@@ -1,0 +1,9 @@
+namePrefix:
+  prod-
+
+commonLabels:
+  env: prod
+
+namespace: "hipster-shop-prod"
+bases:
+  - ../../currencyservice

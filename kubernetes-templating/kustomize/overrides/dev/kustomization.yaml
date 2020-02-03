@@ -1,0 +1,9 @@
+namePrefix:
+  dev-
+
+commonLabels:
+  env: dev
+
+namespace: "hipster-shop"
+bases:
+  - ../../currencyservice
