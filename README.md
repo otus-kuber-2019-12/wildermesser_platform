@@ -25,3 +25,8 @@ wildermesser Platform repository
 ## Volumes
 В директории `kubernetes-volumes` находятся манифесты для деплоя `minio` как `statefulset`, причём данные для авторизации
 сохранены в ресурсе `secret` 
+## Templating
+В директории `kubernetes-templates` находятся файлы для шаблонизации манифестов различными способами:
+ - helm
+ - jsonnet
+ - kustomize
