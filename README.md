@@ -30,3 +30,22 @@ wildermesser Platform repository
  - helm
  - jsonnet
  - kustomize
+## Operators
+В директории `kubernetes-operators` находится реализация простого MySQL оператора, который обрабатывае события создания
+и удаления CRD mysqls.otus.homework.
+При создании ресурсе проиходит попытка восстановления из бэкапа. При удалении - создание бэкапа/
+Пример:
+```
+NAME                         COMPLETIONS   DURATION   AGE
+backup-mysql-instance-job    1/1           1s         16m
+restore-mysql-instance-job   1/1           44s        72s
+```
+После создания CR с теми же параметрами проиходит восстановление из бэкапа и в таблице есть данные:
+```
++----+-------------+
+| id | name        |
++----+-------------+
+|  1 | some data   |
+|  2 | some data-2 |
++----+-------------+
+```
