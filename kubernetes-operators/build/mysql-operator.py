@@ -3,7 +3,9 @@ import yaml
 import kubernetes
 import time
 from jinja2 import Environment, FileSystemLoader
-
+from kubernetes.client.rest import ApiException
+from kubernetes.client import V1Scale
+from kubernetes.stream import stream
 
 def wait_until_job_end(jobname):
     api = kubernetes.client.BatchV1Api()
@@ -113,6 +115,65 @@ def mysql_on_create(body, spec, **kwargs):
     except kubernetes.client.rest.ApiException:
         pass
 
+    return {'message': " mysql-instance created without restore-job"}
+
+
+@kopf.on.update('otus.homework', 'v1', 'mysqls')
+def mysql_on_update(body, meta, spec, status, old, new, diff, **kwargs):
+    name = body['metadata']['name']
+    image = body['spec']['image']
+    password = body['spec']['password']
+    database = body['spec']['database']
+    deployment = render_template('mysql-deployment.yml.j2', {
+        'name': name,
+        'image': image,
+        'password': password,
+        'database': database})
+    # Update password by command in pod
+    pod_api = kubernetes.client.CoreV1Api()
+    pod = None
+    try:
+        pod_list = pod_api.list_namespaced_pod('default',label_selector='app=%s' % name)
+        pod = pod_list.items[0]
+    except ApiException as e:
+        print("Exception when calling AppsV1Api->list_namespaced_pod: %s\n" % e)
+
+    old_password = old['spec']['password']
+    exec_command = [
+        '/bin/sh',
+        '-c',
+        'mysqladmin -u root -p%s password %s' % (old_password, password)]
+
+    resp = stream(pod_api.connect_get_namespaced_pod_exec,
+                  pod.metadata.name,
+                  'default',
+                  command=exec_command,
+                  stderr = True, stdin = False,
+                  stdout = True, tty = False)
+    print("Response: " + resp)
+
+    # Update mysql deployment with rescale
+    api = kubernetes.client.AppsV1Api()
+    try:
+        api.replace_namespaced_deployment(name, 'default', deployment)
+    except ApiException as e:
+        print("Exception when calling AppsV1Api->patch_namespaced_deployment: %s\n" % e)
+
+    zeroScaleSpec = kubernetes.client.V1ScaleSpec(replicas=0)
+    oneScaleSpec = kubernetes.client.V1ScaleSpec(replicas=1)
+    zeroScale = V1Scale(spec=zeroScaleSpec)
+    oneScale = V1Scale(spec=oneScaleSpec)
+    try:
+        api.patch_namespaced_deployment_scale(name, 'default', zeroScale)
+    except ApiException as e:
+        print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
+    time.sleep(1)
+    try:
+        api.patch_namespaced_deployment_scale(name, 'default', oneScale)
+    except ApiException as e:
+        print("Exception when calling AppsV1Api->patch_namespaced_deployment_scale: %s\n" % e)
+
+    return {'message': 'password updated'}
 
 @kopf.on.delete('otus.homework', 'v1', 'mysqls')
 def delete_object_make_backup(body, **kwargs):
