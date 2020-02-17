@@ -30,3 +30,42 @@ wildermesser Platform repository
  - helm
  - jsonnet
  - kustomize
+## Operators
+В директории `kubernetes-operators` находится реализация простого MySQL оператора, который обрабатывае события создания
+и удаления CRD mysqls.otus.homework.
+При создании ресурсе проиходит попытка восстановления из бэкапа. При удалении - создание бэкапа/
+Пример:
+```
+NAME                         COMPLETIONS   DURATION   AGE
+backup-mysql-instance-job    1/1           1s         16m
+restore-mysql-instance-job   1/1           44s        72s
+```
+После создания CR с теми же параметрами проиходит восстановление из бэкапа и в таблице есть данные:
+```
++----+-------------+
+| id | name        |
++----+-------------+
+|  1 | some data   |
+|  2 | some data-2 |
++----+-------------+
+```
+В случае успешного создания, в статусе CR появляется запись вида:
+```
+Status:                                                                                                                                                    │
+  Kopf:                                                                                                                                                    │
+    Dummy:  2020-02-10T07:55:01.509237                                                                                                                     │
+  mysql_on_create:                                                                                                                                         │
+    Message:   mysql-instance created without restore-job    
+```
+Это реализуется возвращением словаря в функции-обработчике mysql_on_update
+
+В случае, если меняется пароль к базе данных, то:
+1. С помощью `list_namespaced_pod('default',label_selector='app=%s' % name)` находится нужный под с mysql
+2. С помощью `kubernetes.stream` в этоп поде запускается команда для смены пароля `mysqladmin -u root -p%s password %s' % (old_password, password)`
+3. Обновляется деплоймент для синхронизации переменных окружения (в данном случае MYSQL_ROOT_PASSWORD применятеся только при первом старте, но в общем случае логично обновлять весь деплоймент)
+4. С помощью `kubernetes.client.V1Scale` осуществляется скалирование пода в 0, а потом в 1 для применения новых значений переменных окружения
+5. В `describe mysql` добавляется статус:
+```
+  mysql_on_update:                                                                                                                                         │
+    Message:  password updated
+```
