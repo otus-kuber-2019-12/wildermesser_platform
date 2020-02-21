@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+
+  template:
+    metadata:
+      labels:
+        app: nginx
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        # TLS SERVER CERTIFICATE
+        vault.hashicorp.com/agent-inject-secret-server.cert: "pki_int/issue/example-dot-ru"
+        vault.hashicorp.com/agent-inject-template-server.cert: |
+          {{- with secret "pki_int/issue/example-dot-ru" "common_name=gitlab.example.ru" "ttl=5m" -}}
+          {{ .Data.certificate }}
+          {{- end }}
+        # TLS SERVER KEY
+        vault.hashicorp.com/agent-inject-secret-server.key: "pki_int/issue/example-dot-ru"
+        vault.hashicorp.com/agent-inject-template-server.key: |
+          {{- with secret "pki_int/issue/example-dot-ru" "common_name=gitlab.example.ru" "ttl=5m" -}}
+          {{ .Data.private_key }}
+          {{- end }}
+        # TLS CA CERTIFICATE
+        vault.hashicorp.com/agent-inject-secret-ca.cert: "pki_int/issue/example-dot-ru"
+        vault.hashicorp.com/agent-inject-template-ca.cert: |
+          {{- with secret "pki_int/issue/example-dot-ru" "common_name=gitlab.example.ru" "ttl=5m" -}}
+          {{ .Data.issuing_ca }}
+          {{- end }}
+        vault.hashicorp.com/role: "cert"
+        vault.hashicorp.com/tls-skip-verify: "true"
+        vault.hashicorp.com/service: "https://vault:8200"
+    spec:
+      serviceAccountName: vault-auth
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 443
+        volumeMounts:
+        - mountPath: /etc/nginx
+          readOnly: true
+          name: nginx-conf
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
