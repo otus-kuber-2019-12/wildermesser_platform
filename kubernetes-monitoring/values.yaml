@@ -1,0 +1,19 @@
+grafana:
+  adminPassword: P@ssw0rd
+  service:
+    type: NodePort
+    nodePort: 30002
+  
+prometheus:
+  prometheusSpec:
+    serviceMonitorNamespaceSelector: {}
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+  service:
+    type: NodePort
+    nodePort: 30001
+
+alertmanager:
+  service:
+    type: NodePort
+    nodePort: 30003
