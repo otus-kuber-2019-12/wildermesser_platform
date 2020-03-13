@@ -1,0 +1,33 @@
+grafana:
+  enabled: true
+  adminPassword: P@ssw0rd
+  service:
+    type: NodePort
+    nodePort: 30300
+  additionalDataSources:
+    - name: loki
+      type: loki
+      url: http://loki:3100
+
+prometheus:
+  enabled: true
+
+promtail:
+  extraScrapeConfigs:
+    - job_name: journal
+      journal:
+        labels:
+          job: systemd-journal
+        path: /run/log/journal
+      relabel_configs:
+        - source_labels: ['__journal__systemd_unit']
+          target_label: 'unit'
+  volumes:
+  - name: journal
+    hostPath:
+      path: /run/log
+
+  volumeMounts:
+  - name: journal
+    mountPath: /run/log
+    readOnly: true

@@ -1,0 +1,19 @@
+grafana:
+  adminPassword: P@ssw0rd
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.35.224.6.105.xip.io
+  additionalDataSources:
+    - name: loki
+      type: loki
+      url: http://loki:3100
+prometheus:
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.35.224.6.105.xip.io
+  prometheusSpec:
+    serviceMonitorNamespaceSelector: {}
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}

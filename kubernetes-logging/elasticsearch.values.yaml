@@ -1,0 +1,8 @@
+tolerations:
+  - key: node-pole
+    operator: Equal
+    value: infra
+    effect: NoSchedule
+
+nodeSelector:
+  cloud.google.com/gke-nodepool: infra-pool
