@@ -335,3 +335,5 @@ EOF
 Скриншоты, показывающие обновление сертификатов:
  - `kubernetes-vault/nginx/cert1.png` [cert1.png](otus-kuber-2019-12/wildermesser_platform/blob/kubernetes-vault/kubernetes-vault/nginx/cert1.png)
  - `kubernetes-vault/nginx/cert2.png` [cert2.png](otus-kuber-2019-12/wildermesser_platform/blob/kubernetes-vault/kubernetes-vault/nginx/cert2.png)
+## GitOps
+Работа проведена в https://gitlab.com/wildermesser/microservices-demo
